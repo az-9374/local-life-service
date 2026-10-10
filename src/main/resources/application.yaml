@@ -1,0 +1,35 @@
+server:
+  port: 8081
+spring:
+  application:
+    name: local-life-service
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://192.168.100.130:3306/hmdp?useSSL=false&serverTimezone=UTC
+#    url: jdbc:mysql://mysql:3306/hmdp?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true #docker部署准备
+    username: root
+    password: 1234
+  redis:
+    host: 192.168.100.130
+#    host: redis
+    port: 6379
+    password: 123456
+    lettuce:
+      pool:
+        max-active: 10
+        max-idle: 10
+        min-idle: 1
+        time-between-eviction-runs: 10s
+  jackson:
+    default-property-inclusion: non_null # JSON处理时忽略非空字段
+mybatis-plus:
+  type-aliases-package: com.chen.locallife.entity # 别名扫描包
+#logging:
+#  level:
+#    com.chen.locallife: debug
+logging:
+  level:
+    root: debug                    # 全局 INFO
+    io.lettuce.core: WARN        # 只显示警告和错误
+    io.netty: WARN               # 只显示警告和错误
+    org.springframework.data.redis: WARN
