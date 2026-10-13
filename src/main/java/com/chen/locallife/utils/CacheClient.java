@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
@@ -42,7 +43,10 @@ public class CacheClient {
      */
     //redis的set(),相当于简化，还帮你直接把Str转成JSON了
     public void set(String key, Object value, Long time, TimeUnit unit) {
-        stringRedisTemplate.opsForValue().set(key, JSONUtil.toJsonStr(value), time, unit);
+        //随机ttl解决缓存雪崩问题
+        long randomOffset= ThreadLocalRandom.current().nextLong(0,Math.max(1,time/10));
+        long actualTtl=time+randomOffset;
+        stringRedisTemplate.opsForValue().set(key, JSONUtil.toJsonStr(value), actualTtl, unit);
     }
 
     /**

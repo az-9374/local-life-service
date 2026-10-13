@@ -29,7 +29,7 @@ mybatis-plus:
 #    com.chen.locallife: debug
 logging:
   level:
-    root: debug                    # 全局 INFO
+    root: info                  # 全局 INFO
     io.lettuce.core: WARN        # 只显示警告和错误
     io.netty: WARN               # 只显示警告和错误
     org.springframework.data.redis: WARN

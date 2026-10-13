@@ -61,6 +61,15 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         SECKILL_SCRIPT.setLocation(new ClassPathResource("seckill.lua"));
         SECKILL_SCRIPT.setResultType(Long.class);
     }
+
+    //秒杀限流
+    private static final DefaultRedisScript<Long> LIMIT_SCRIPT;
+    static {
+        LIMIT_SCRIPT=new DefaultRedisScript<>();
+        LIMIT_SCRIPT.setLocation(new ClassPathResource("limit.lua"));
+        LIMIT_SCRIPT.setResultType(Long.class);
+    }
+
     //阻塞队列10.,11.不要这句
 //    private final BlockingQueue<VoucherOrder> orderTasks=new ArrayBlockingQueue<>(1024*1024);
     //异步线程池
@@ -71,7 +80,14 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
 
     @PostConstruct//init() 是普通方法，Spring 启动时不会自动执行--需要加 @PostConstruct
     private void init(){
-//        proxy=(IVoucherOrderService) AopContext.currentProxy();//为啥？
+        //消费者组缓存预热
+        try{
+            stringRedisTemplate.opsForStream().createGroup("stream.orders","g1");
+            log.info("消费者组g1创建成功");
+        } catch (Exception e) {
+            log.info("消费者组已存在：{}",e.getMessage());
+        }
+
         SECKILL_ORDER_EXECUTOR.submit(new VoucherOrderHandler());
     }
 
@@ -96,6 +112,18 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
 
         //10.
         Long userId=UserHolder.getUser().getId();
+        //=====秒杀限流=====
+        String limitKey = "limit:seckill:"+userId;
+        Long limitResult=stringRedisTemplate.execute(
+                LIMIT_SCRIPT,
+                Collections.singletonList(limitKey),
+                "10",
+                "1"
+        );
+        if(limitResult==null || limitResult==0){
+            return  Result.fail("请求过于频繁，请稍后再试");
+        }
+        //=====限流结束=====
         Long orderId=redisIdWorker.nextId("order");//11.
         Long result=stringRedisTemplate.execute(
                 SECKILL_SCRIPT,
