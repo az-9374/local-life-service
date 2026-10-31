@@ -5,12 +5,12 @@ spring:
     name: local-life-service
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://192.168.100.130:3306/hmdp?useSSL=false&serverTimezone=UTC
+    url: jdbc:mysql://192.168.100.132:3306/hmdp?useSSL=false&serverTimezone=UTC
 #    url: jdbc:mysql://mysql:3306/hmdp?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true #docker部署准备
     username: root
     password: 1234
   redis:
-    host: 192.168.100.130
+    host: 192.168.100.132
 #    host: redis
     port: 6379
     password: 123456
@@ -22,6 +22,17 @@ spring:
         time-between-eviction-runs: 10s
   jackson:
     default-property-inclusion: non_null # JSON处理时忽略非空字段
+#mq配置
+  rabbitmq:
+    host: 192.168.100.132
+    port: 5672
+    username: admin
+    password: 123456
+    virtual-host: /
+    listener:
+      simple:
+        prefetch: 1 # 每次拉取一条，处理完再拉下一条，防止消息堆积在消费者内存
+        acknowledge-mode: manual # 开启手动 ACK
 mybatis-plus:
   type-aliases-package: com.chen.locallife.entity # 别名扫描包
 #logging:

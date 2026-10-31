@@ -26,10 +26,4 @@ redis.call("incrby",stockKey,-1)
 --存下单set
 redis.call("sadd",orderKey,userId)
 
---11.把消息发到Stream
-redis.call("xadd","stream.orders","*",
-      "userId",userId,
-      "voucherId",voucherId,
-      "id",orderId)
-
 return 0
